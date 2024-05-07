@@ -33,16 +33,13 @@ public partial class BasePlayer : CharacterBody2D
 				currentPath = tileMap.GetAStarGrid2D().GetIdPath(
 					tileMap.LocalToMap(GlobalPosition), tileMap.LocalToMap(clickPos)
 				).Slice(1);
-
-				// Calculate direction based on the difference between current position and target position
-				Vector2 directionVector = (tileMap.MapToLocal(currentPath[0]) - GlobalPosition).Normalized();
-				direction = directionVector.X > 0 ? 1 : -1; // Right or Left
 			}
 		}
 	}
 
-	private void HandlePlayerMovement() {
-		if (currentPath == null)
+	private void HandlePlayerMovement()
+	{
+		if (currentPath == null || currentPath.Count == 0)
 		{
 			return;
 		}
@@ -50,16 +47,28 @@ public partial class BasePlayer : CharacterBody2D
 		Vector2 targetPos = tileMap.MapToLocal(currentPath[0]);
 		GlobalPosition = GlobalPosition.MoveToward(targetPos, 1);
 
+
 		if (GlobalPosition == targetPos && currentPath.Count > 1)
 			currentPath.RemoveAt(0);
+		else
+		{
+			// Calculate direction based on the difference between current position and target position
+			Vector2 directionVector = (targetPos - GlobalPosition).Normalized();
+			if (directionVector.X != 0)
+				direction = directionVector.X > 0 ? 1 : -1; // Right or Left
+		}
 	}
 
-	private void HandleAnimation() {
-		animatedSprite2D.FlipH = direction < 0 ? true: false;
+	private void HandleAnimation()
+	{
+		animatedSprite2D.FlipH = direction < 0 ? true : false;
 
-		if (currentPath != null && currentPath.Count > 1) {
+		if (currentPath != null && currentPath.Count > 1)
+		{
 			animatedSprite2D.Play("run");
-		} else {
+		}
+		else
+		{
 			animatedSprite2D.Play("idle");
 		}
 	}

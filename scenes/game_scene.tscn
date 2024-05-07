@@ -9,7 +9,7 @@
 unique_name_in_owner = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(322, 332)
+position = Vector2(322, 313)
 
 [node name="Knight" parent="." instance=ExtResource("2_o0oe5")]
 position = Vector2(241, 302)

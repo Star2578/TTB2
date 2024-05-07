@@ -19,7 +19,7 @@ public partial class TileMapController : TileMap
 	{
 		if (Input.IsKeyPressed(Key.F2))
 		{
-			InitWall(GenerateDungeon());
+			ToNewLevel();
 		}
 	}
 
@@ -339,9 +339,14 @@ public partial class TileMapController : TileMap
 		};
 		astar.Update();
 
-		for (int i = 0; i < tileMapSize.X; i++)
+		CraftPath();
+	}
+
+	private void CraftPath()
+	{
+		for (int i = 0; i < BOARD_SIZE; i++)
 		{
-			for (int j = 0; j < tileMapSize.Y; j++)
+			for (int j = 0; j < BOARD_SIZE; j++)
 			{
 				Vector2I coord = new Vector2I(i, j);
 				TileData tileData = GetCellTileData(1, coord);
@@ -350,8 +355,18 @@ public partial class TileMapController : TileMap
 				{
 					astar.SetPointSolid(coord);
 				}
+				else
+				{
+					astar.SetPointSolid(coord, false);
+				}
 			}
 		}
+	}
+
+	public void ToNewLevel()
+	{
+		InitWall(GenerateDungeon());
+		CraftPath();
 	}
 
 	public bool IsWalkable(Vector2 pos)
@@ -368,7 +383,8 @@ public partial class TileMapController : TileMap
 		return false;
 	}
 
-	public AStarGrid2D GetAStarGrid2D() {
+	public AStarGrid2D GetAStarGrid2D()
+	{
 		return astar;
 	}
 }
