@@ -9,12 +9,12 @@ public partial class TileMapController : TileMap
 
 	public override void _Ready() {
 		InitFloor();
-		InitWall();
+		InitWall(GenerateDungeon());
 	}
 
 	public override void _Process(double delta) {
 		if (Input.IsKeyPressed(Key.F2)) {
-			InitWall();
+			InitWall(GenerateDungeon());
 		}
 	}
 
@@ -27,7 +27,7 @@ public partial class TileMapController : TileMap
                 Vector2I tilePosition = new Vector2I(row, col);
 
                 // Set the tile at the calculated position
-                SetCell(0, tilePosition, 2, GetRandomFloor());
+                SetCell(0, tilePosition, 1, GetRandomFloor());
 			}
 		}
 	}
@@ -35,13 +35,13 @@ public partial class TileMapController : TileMap
 	private Vector2I GetRandomFloor() {
 	    // Define the floors with their respective weights
 	    KeyValuePair<Vector2I, float>[] floorsWithWeights = {
-	        new KeyValuePair<Vector2I, float>(new Vector2I(4, 3), 8f),
-	        new KeyValuePair<Vector2I, float>(new Vector2I(6, 3), 1f),
-	        new KeyValuePair<Vector2I, float>(new Vector2I(7, 3), 1f),
-	        new KeyValuePair<Vector2I, float>(new Vector2I(4, 4), 1f),
-	        new KeyValuePair<Vector2I, float>(new Vector2I(5, 4), 1f),
-	        new KeyValuePair<Vector2I, float>(new Vector2I(6, 4), 1f),
-	        new KeyValuePair<Vector2I, float>(new Vector2I(7, 4), 1f)
+	        new KeyValuePair<Vector2I, float>(new Vector2I(0, 0), 8f),
+	        new KeyValuePair<Vector2I, float>(new Vector2I(2, 0), 1f),
+	        new KeyValuePair<Vector2I, float>(new Vector2I(3, 0), 1f),
+	        new KeyValuePair<Vector2I, float>(new Vector2I(0, 1), 1f),
+	        new KeyValuePair<Vector2I, float>(new Vector2I(1, 1), 1f),
+	        new KeyValuePair<Vector2I, float>(new Vector2I(2, 1), 1f),
+	        new KeyValuePair<Vector2I, float>(new Vector2I(3, 1), 1f),
 	    };
 
 	    // Calculate the total weight
@@ -68,23 +68,60 @@ public partial class TileMapController : TileMap
 	    return floorsWithWeights[0].Key;
 	}
 
-	private void InitWall() {
-		bool[,] dungeonGrid = GenerateDungeon();
+	private void InitWall(bool[,] dungeonLayout) {
+	    // Create an expanded layout to prevent null border
+	    bool[,] expandedLayout = new bool[BOARD_SIZE + 2, BOARD_SIZE + 2];
+	    for (int row = 0; row < expandedLayout.GetLength(1); row++) {
+			String toPrint = "";
+	        for (int col = 0; col < expandedLayout.GetLength(0); col++) {
+	            if (col == 0 || col == expandedLayout.GetLength(0) - 1 || row == 0 || row == expandedLayout.GetLength(1) - 1) {
+	                expandedLayout[col, row] = false;
+	            } else {
+	                expandedLayout[col, row] = dungeonLayout[col - 1, row - 1];
+	            }
+				toPrint += " " + (expandedLayout[col, row] ? "." : "#");
+	        }
+			GD.Print(toPrint);
+	    }
 
-		for (int row = 0; row < BOARD_SIZE; row++)
-		{
-			for (int col = 0; col < BOARD_SIZE; col++)
-			{
-				// Calculate the position of the tile
-                Vector2I tilePosition = new Vector2I(row, col);
+	    // Initialize autotiling system
+	    for (int row = 1; row < expandedLayout.GetLength(1) - 1; row++) {
+	        for (int col = 1; col < expandedLayout.GetLength(0) - 1; col++) {
+	            if (!expandedLayout[col, row])
+	            {
+	                // Calculate bit mask
+	                int bitMask = 0;
+	                if (!expandedLayout[col, row - 1]) bitMask += 2;
+	                if (!expandedLayout[col - 1, row]) bitMask += 8;
+	                if (!expandedLayout[col + 1, row]) bitMask += 16;
+	                if (!expandedLayout[col, row + 1]) bitMask += 64;
+	                if (!expandedLayout[col - 1, row] && !expandedLayout[col, row - 1] && !expandedLayout[col - 1, row - 1]) bitMask += 1;
+	                if (!expandedLayout[col + 1, row] && !expandedLayout[col, row - 1] && !expandedLayout[col + 1, row - 1]) bitMask += 4;
+	                if (!expandedLayout[col - 1, row] && !expandedLayout[col, row + 1] && !expandedLayout[col - 1, row + 1]) bitMask += 32;
+	                if (!expandedLayout[col + 1, row] && !expandedLayout[col, row + 1] && !expandedLayout[col + 1, row + 1]) bitMask += 128;
 
-				if (!dungeonGrid[row, col])
-                	// Set the tile at the calculated position
-                	SetCell(1, tilePosition, 2, GetWall());
-				else
-					SetCell(1, tilePosition, 0);
-			}
-		}
+	                // Map bit mask to tile and add to tile map
+	                int[] jumpList = { 2, 8, 10, 11, 16, 18, 22, 24,
+	                                   26, 27, 30, 31, 64, 66, 72, 74,
+	                                   75, 80, 82, 86, 88, 90, 91, 94,
+	                                   95, 104, 106, 107, 120, 122, 123, 126,
+	                                   127, 208, 210, 214, 216, 218, 219, 222,
+	                                   223, 248, 250, 251, 254, 255, 0 };
+	                for (int i = 0; i < jumpList.Length; i++)
+	                {
+	                    if (bitMask == jumpList[i])
+	                    {
+	                        // Add tile to tile map
+	                        SetCell(1, new Vector2I(col - 1, row - 1), 0, GetWallTile((i+1)%8, (i+1)/8));
+	                        break;
+	                    }
+	                }
+	            } else {
+					// place empty
+	                SetCell(1, new Vector2I(col - 1, row - 1), 0);
+				}
+	        }
+	    }
 	}
 
 	private bool[,] GenerateDungeon() {
@@ -94,6 +131,7 @@ public partial class TileMapController : TileMap
 	    int maxRooms = 7;
 	    int minRoomSize = 4;
 	    int maxRoomSize = 6;
+		int borderSize = 2; // Size of the safe border
 
 	    // Initialize dungeon grid
 	    bool[,] dungeonGrid = new bool[width, height];
@@ -106,8 +144,8 @@ public partial class TileMapController : TileMap
 	    {
 	        int roomWidth = random.Next(minRoomSize, maxRoomSize);
 	        int roomHeight = random.Next(minRoomSize, maxRoomSize);
-	        int x = random.Next(0, width - roomWidth - 1);
-	        int y = random.Next(0, height - roomHeight - 1);
+	        int x = random.Next(borderSize, width - roomWidth - 1);
+	        int y = random.Next(borderSize, height - roomHeight - 1);
 
 	        Rect2I newRoom = new Rect2I(x, y, roomWidth, roomHeight);
 	
@@ -185,7 +223,7 @@ public partial class TileMapController : TileMap
 		return dungeonGrid;
 	}
 
-	private Vector2I GetWall() {
-		return new Vector2I(0, 0);
+	private Vector2I GetWallTile(int col, int row) {
+		return new Vector2I(col, row);
 	}
 }
