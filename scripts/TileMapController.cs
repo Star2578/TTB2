@@ -82,7 +82,7 @@ public partial class TileMapController : TileMap
 		bool[,] expandedLayout = new bool[BOARD_SIZE + 2, BOARD_SIZE + 2];
 		for (int row = 0; row < expandedLayout.GetLength(1); row++)
 		{
-			String toPrint = "";
+			// String toPrint = "";
 			for (int col = 0; col < expandedLayout.GetLength(0); col++)
 			{
 				if (
@@ -98,9 +98,9 @@ public partial class TileMapController : TileMap
 				{
 					expandedLayout[col, row] = dungeonLayout[col - 1, row - 1];
 				}
-				toPrint += " " + (expandedLayout[col, row] ? "." : "#");
+				// toPrint += " " + (expandedLayout[col, row] ? "." : "#");
 			}
-			GD.Print(toPrint);
+			// GD.Print(toPrint);
 		}
 
 		// Initialize autotiling system
@@ -360,11 +360,11 @@ public partial class TileMapController : TileMap
 
 		if (mapRect.HasPoint(mapPos) && !astar.IsPointSolid(mapPos))
 		{
-			GD.Print("This is Walkable");
+			// GD.Print("This is Walkable");
 			return true;
 		}
 
-		GD.Print("This is not Walkable");
+		// GD.Print("This is not Walkable");
 		return false;
 	}
 

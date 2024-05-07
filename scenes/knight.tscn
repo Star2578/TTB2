@@ -1,0 +1,90 @@
+[gd_scene load_steps=13 format=3 uid="uid://cefyrepx32tcs"]
+
+[ext_resource type="PackedScene" uid="uid://xskn5etgkwfq" path="res://scenes/base_player.tscn" id="1_rtknu"]
+[ext_resource type="Texture2D" uid="uid://din6b6k7ctnr6" path="res://assets/players/knight_sprite_sheet.png" id="2_k3ad2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u24gn"]
+atlas = ExtResource("2_k3ad2")
+region = Rect2(0, 0, 32, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_001y4"]
+atlas = ExtResource("2_k3ad2")
+region = Rect2(32, 0, 32, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5hw1o"]
+atlas = ExtResource("2_k3ad2")
+region = Rect2(64, 0, 32, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m31fj"]
+atlas = ExtResource("2_k3ad2")
+region = Rect2(96, 0, 32, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fyi0l"]
+atlas = ExtResource("2_k3ad2")
+region = Rect2(0, 112, 32, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8bist"]
+atlas = ExtResource("2_k3ad2")
+region = Rect2(32, 112, 32, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o51qi"]
+atlas = ExtResource("2_k3ad2")
+region = Rect2(64, 112, 32, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_we187"]
+atlas = ExtResource("2_k3ad2")
+region = Rect2(96, 112, 32, 56)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_20bnj"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u24gn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_001y4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5hw1o")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m31fj")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fyi0l")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8bist")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o51qi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_we187")
+}],
+"loop": true,
+"name": &"run",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_evvl0"]
+size = Vector2(20, 21)
+
+[node name="Knight" instance=ExtResource("1_rtknu")]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." index="0"]
+sprite_frames = SubResource("SpriteFrames_20bnj")
+animation = &"run"
+autoplay = "idle"
+offset = Vector2(0, -18)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." index="1"]
+position = Vector2(0, -1)
+shape = SubResource("RectangleShape2D_evvl0")
+metadata/_edit_lock_ = true
