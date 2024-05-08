@@ -1,7 +1,8 @@
-[gd_scene load_steps=13 format=3 uid="uid://cefyrepx32tcs"]
+[gd_scene load_steps=14 format=3 uid="uid://cefyrepx32tcs"]
 
 [ext_resource type="PackedScene" uid="uid://xskn5etgkwfq" path="res://scenes/base_player.tscn" id="1_rtknu"]
 [ext_resource type="Texture2D" uid="uid://din6b6k7ctnr6" path="res://assets/players/knight_sprite_sheet.png" id="2_k3ad2"]
+[ext_resource type="Script" path="res://scripts/players/Knight.cs" id="2_qrxqn"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_u24gn"]
 atlas = ExtResource("2_k3ad2")
@@ -76,10 +77,12 @@ animations = [{
 size = Vector2(20, 21)
 
 [node name="Knight" instance=ExtResource("1_rtknu")]
+z_index = 99
+script = ExtResource("2_qrxqn")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." index="0"]
 sprite_frames = SubResource("SpriteFrames_20bnj")
-animation = &"run"
+animation = &"idle"
 autoplay = "idle"
 offset = Vector2(0, -18)
 metadata/_edit_lock_ = true

@@ -1,29 +1,46 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 public partial class TileMapController : TileMap
 {
 	private const int BOARD_SIZE = 20; // refer to game grid width, height
-	private AStarGrid2D astar;
-	private Rect2I mapRect;
+	public AStarGrid2D astar { get; private set; }
+	public Rect2I mapRect { get; private set; }
+	private CellData[][] cellData;
 
 	public override void _Ready()
 	{
-		InitFloor();
-		InitWall(GenerateDungeon());
-		InitAstar();
 	}
 
 	public override void _Process(double delta)
 	{
 		if (Input.IsKeyPressed(Key.F2))
 		{
-			ToNewLevel();
+			BuildNewLevel();
 		}
 	}
 
-	private void InitFloor()
+	public void InitCellData()
+	{
+		cellData = new CellData[BOARD_SIZE][];
+
+		for (int i = 0; i < BOARD_SIZE; i++)
+		{
+			cellData[i] = new CellData[BOARD_SIZE];
+
+			for (int j = 0; j < BOARD_SIZE; j++)
+			{
+				Vector2 localPos = MapToLocal(new Vector2I(i, j));
+				cellData[i][j] = new CellData(new Vector2I((int)localPos.X, (int)localPos.Y), true);
+				// GD.Print(cellData[i][j].position);
+				// GD.Print(cellData[i][j].isValid);
+			}
+		}
+	}
+
+	public void InitFloor()
 	{
 		for (int row = 0; row < BOARD_SIZE; row++)
 		{
@@ -218,6 +235,8 @@ public partial class TileMapController : TileMap
 				}
 			}
 		}
+
+		InitAstar();
 	}
 
 	private bool[,] GenerateDungeon()
@@ -327,17 +346,20 @@ public partial class TileMapController : TileMap
 
 	private void InitAstar()
 	{
-		Vector2I tileMapSize = GetUsedRect().End - GetUsedRect().Position;
-		mapRect = new Rect2I(Vector2I.Zero, tileMapSize);
-		astar = new AStarGrid2D
+		if (astar == null)
 		{
-			Region = mapRect,
-			CellSize = TileSet.TileSize,
-			DefaultComputeHeuristic = AStarGrid2D.Heuristic.Manhattan,
-			DefaultEstimateHeuristic = AStarGrid2D.Heuristic.Manhattan,
-			DiagonalMode = AStarGrid2D.DiagonalModeEnum.Always
-		};
-		astar.Update();
+			Vector2I tileMapSize = GetUsedRect().End - GetUsedRect().Position;
+			mapRect = new Rect2I(Vector2I.Zero, tileMapSize);
+			astar = new AStarGrid2D
+			{
+				Region = mapRect,
+				CellSize = TileSet.TileSize,
+				DefaultComputeHeuristic = AStarGrid2D.Heuristic.Manhattan,
+				DefaultEstimateHeuristic = AStarGrid2D.Heuristic.Manhattan,
+				DiagonalMode = AStarGrid2D.DiagonalModeEnum.Always
+			};
+			astar.Update();
+		}
 
 		CraftPath();
 	}
@@ -354,19 +376,24 @@ public partial class TileMapController : TileMap
 				if (tileData != null && !tileData.GetCustomData("walkable").AsBool())
 				{
 					astar.SetPointSolid(coord);
+					cellData[i][j].isValid = false;
 				}
 				else
 				{
 					astar.SetPointSolid(coord, false);
+					cellData[i][j].isValid = true;
 				}
 			}
 		}
 	}
 
-	public void ToNewLevel()
+	public void BuildNewLevel()
 	{
+		var player = GameController.GetInstance().player;
 		InitWall(GenerateDungeon());
 		CraftPath();
+		PlaceEntityRandomly(player);
+		player.ClearPlayerPath();
 	}
 
 	public bool IsWalkable(Vector2 pos)
@@ -375,16 +402,55 @@ public partial class TileMapController : TileMap
 
 		if (mapRect.HasPoint(mapPos) && !astar.IsPointSolid(mapPos))
 		{
-			// GD.Print("This is Walkable");
 			return true;
 		}
 
-		// GD.Print("This is not Walkable");
 		return false;
 	}
 
-	public AStarGrid2D GetAStarGrid2D()
+	public void PlaceEntity(Node2D entity, int col, int row)
 	{
-		return astar;
+		// Check if the grid position is valid on the scene
+		if (!IsGridPositionValid(new Vector2I(col, row)))
+		{
+			GD.Print("Invalid grid position.");
+			return;
+		}
+
+		// Adjust entity position
+		entity.Position = cellData[col][row].position;
+
+		// Add the entity as a child of the tilemap controller
+		// if hasn't added yet
+		if (!GetChildren().Contains(entity))
+			AddChild(entity);
+	}
+
+	public void PlaceEntityRandomly(BasePlayer entity)
+	{
+		// Generate a random position within the tile map bounds
+		Vector2I randomPos = GetRandomGridPosition();
+
+		// Place the entity at the random position
+		PlaceEntity(entity, randomPos.X, randomPos.Y);
+	}
+
+	private bool IsGridPositionValid(Vector2I gridPos)
+	{
+		return cellData[gridPos.X][gridPos.Y].isValid;
+	}
+
+	private Vector2I GetRandomGridPosition()
+	{
+		Random random = new Random();
+		int randomX;
+		int randomY;
+		do
+		{
+			randomX = random.Next(0, BOARD_SIZE);
+			randomY = random.Next(0, BOARD_SIZE);
+		} while (!cellData[randomX][randomY].isValid);
+
+		return new Vector2I(randomX, randomY);
 	}
 }

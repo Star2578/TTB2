@@ -10,9 +10,14 @@ public partial class BasePlayer : BaseEntity
 
 	public bool IsPlayerSelected { get; set; }
 
+	public BasePlayer()
+	{
+		currentPath = new Godot.Collections.Array<Vector2I>();
+	}
+
 	public BasePlayer(string name, string description) : base(name, description)
 	{
-
+		
 	}
 
 	public override void _Ready()
@@ -36,7 +41,7 @@ public partial class BasePlayer : BaseEntity
 		{
 			if (!tileMap.IsWalkable(clickPos)) return;
 
-			currentPath = tileMap.GetAStarGrid2D().GetIdPath(
+			currentPath = tileMap.astar.GetIdPath(
 				tileMap.LocalToMap(GlobalPosition), tileMap.LocalToMap(clickPos)
 			).Slice(1);
 		}
@@ -74,5 +79,11 @@ public partial class BasePlayer : BaseEntity
 		{
 			animatedSprite2D.Play("idle");
 		}
+	}
+
+	public void ClearPlayerPath()
+	{
+		if (currentPath != null && currentPath.Count > 0)
+			currentPath.Clear();
 	}
 }

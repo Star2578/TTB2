@@ -1,8 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://b2dnbw68oc2la"]
+[gd_scene load_steps=3 format=3 uid="uid://b2dnbw68oc2la"]
 
 [ext_resource type="Script" path="res://scripts/GameController.cs" id="1_r5bdp"]
 [ext_resource type="PackedScene" uid="uid://blpu84egq2f2l" path="res://scenes/tile_map.tscn" id="1_wxtnd"]
-[ext_resource type="PackedScene" uid="uid://cefyrepx32tcs" path="res://scenes/knight.tscn" id="2_o0oe5"]
 
 [node name="GameScene" type="Node2D"]
 
@@ -15,6 +14,3 @@ unique_name_in_owner = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(322, 313)
-
-[node name="Knight" parent="." instance=ExtResource("2_o0oe5")]
-position = Vector2(241, 302)
