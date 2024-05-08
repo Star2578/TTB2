@@ -1,11 +1,19 @@
 using Godot;
 
-public partial class BasePlayer : CharacterBody2D
+public partial class BasePlayer : BaseEntity
 {
 	private TileMapController tileMap;
 	private AnimatedSprite2D animatedSprite2D;
-	private int direction = 0;
 	private Godot.Collections.Array<Vector2I> currentPath;
+	private int direction = 0;
+
+
+	public bool IsPlayerSelected { get; set; }
+
+	public BasePlayer(string name, string description) : base(name, description)
+	{
+
+	}
 
 	public override void _Ready()
 	{
@@ -26,23 +34,18 @@ public partial class BasePlayer : CharacterBody2D
 
 		if (Input.IsActionJustPressed("move_to"))
 		{
-			// GD.Print("Click here " + clickPos);
-			if (tileMap.IsWalkable(clickPos))
-			{
-				// GD.Print("Added destination");
-				currentPath = tileMap.GetAStarGrid2D().GetIdPath(
-					tileMap.LocalToMap(GlobalPosition), tileMap.LocalToMap(clickPos)
-				).Slice(1);
-			}
+			if (!tileMap.IsWalkable(clickPos)) return;
+
+			currentPath = tileMap.GetAStarGrid2D().GetIdPath(
+				tileMap.LocalToMap(GlobalPosition), tileMap.LocalToMap(clickPos)
+			).Slice(1);
 		}
 	}
 
 	private void HandlePlayerMovement()
 	{
-		if (currentPath == null || currentPath.Count == 0)
-		{
-			return;
-		}
+		if (currentPath == null || currentPath.Count == 0) return;
+
 
 		Vector2 targetPos = tileMap.MapToLocal(currentPath[0]);
 		GlobalPosition = GlobalPosition.MoveToward(targetPos, 1);

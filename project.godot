@@ -19,6 +19,10 @@ config/icon="res://icon.svg"
 
 project/assembly_name="TTB_2"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/GDMUT/plugin.cfg")
+
 [input]
 
 move_to={
