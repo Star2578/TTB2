@@ -10,10 +10,6 @@ public partial class TileMapController : TileMap
 	public Rect2I mapRect { get; private set; }
 	private CellData[][] cellData;
 
-	public override void _Ready()
-	{
-	}
-
 	public override void _Process(double delta)
 	{
 		if (Input.IsKeyPressed(Key.F2))
@@ -244,7 +240,8 @@ public partial class TileMapController : TileMap
 		// Define dungeon parameters
 		int width = BOARD_SIZE;
 		int height = BOARD_SIZE;
-		int maxRooms = 7;
+		int maxRooms = 6;
+		int minRooms = 3;
 		int minRoomSize = 4;
 		int maxRoomSize = 6;
 		int borderSize = 2; // Size of the safe border
@@ -253,10 +250,11 @@ public partial class TileMapController : TileMap
 		bool[,] dungeonGrid = new bool[width, height];
 
 		Random random = new Random();
+		int targetRooms = random.Next(minRooms, maxRooms);
 
 		// Generate rooms
 		List<Rect2I> rooms = new List<Rect2I>();
-		for (int i = 0; i < maxRooms; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			int roomWidth = random.Next(minRoomSize, maxRoomSize);
 			int roomHeight = random.Next(minRoomSize, maxRoomSize);
@@ -287,6 +285,8 @@ public partial class TileMapController : TileMap
 					}
 				}
 			}
+
+			if (rooms.Count == targetRooms) break;
 		}
 
 		// Generate corridors
@@ -422,8 +422,8 @@ public partial class TileMapController : TileMap
 
 		// Add the entity as a child of the tilemap controller
 		// if hasn't added yet
-		if (!GetChildren().Contains(entity))
-			AddChild(entity);
+		if (!GetTree().Root.GetNode<Node>("GameScene/PlayerContainer").GetChildren().Contains(entity))
+			GetTree().Root.GetNode<Node>("GameScene/PlayerContainer").AddChild(entity);
 	}
 
 	public void PlaceEntityRandomly(BasePlayer entity)

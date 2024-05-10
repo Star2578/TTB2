@@ -14,3 +14,7 @@ unique_name_in_owner = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(322, 313)
+
+[node name="PlayerContainer" type="Node" parent="."]
+
+[node name="EnemyContainer" type="Node" parent="."]

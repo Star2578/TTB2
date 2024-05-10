@@ -7,11 +7,10 @@ public partial class GameController : Node
 
 	public TileMapController tileMapController { get; private set; }
 	public BasePlayer player;
-	public PackedScene playerScene;
 
 	public GameController()
 	{
-		playerScene = (PackedScene)GD.Load("res://scenes/knight.tscn");
+		var playerScene = (PackedScene)GD.Load("res://scenes/knight.tscn");
 		player = playerScene.Instantiate().GetNode<BasePlayer>(".");
 	}
 
