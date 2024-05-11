@@ -8,7 +8,13 @@ public partial class TileMapController : TileMap
 	private const int BOARD_SIZE = 20; // refer to game grid width, height
 	public AStarGrid2D astar { get; private set; }
 	public Rect2I mapRect { get; private set; }
-	private CellData[][] cellData;
+	private CellData[][] cellData; // for quick direct access using col, row notation
+	private Dictionary<Vector2I, CellData> cellDataDictionary; // for containment checks
+
+	private int floorLayer = 0;
+	private int selectionLayer = 1;
+	private int hoverLayer = 2;
+	private int wallLayer = 3;
 
 	public override void _Process(double delta)
 	{
@@ -16,11 +22,27 @@ public partial class TileMapController : TileMap
 		{
 			BuildNewLevel();
 		}
+		MouseHoverTiles();
+	}
+
+	private void MouseHoverTiles()
+	{
+		var tileMapPos = LocalToMap(GetGlobalMousePosition());
+		var tileLocalPos = (Vector2I)MapToLocal(tileMapPos);
+
+		ClearLayer(hoverLayer);
+
+		if (cellDataDictionary.ContainsKey(tileLocalPos) && cellData[tileMapPos.X][tileMapPos.Y].isValid)
+		{
+			// GD.Print("Hovering");
+			SetCell(hoverLayer, tileMapPos, 2, new Vector2I(0, 0));
+		}
 	}
 
 	public void InitCellData()
 	{
 		cellData = new CellData[BOARD_SIZE][];
+		cellDataDictionary = new Dictionary<Vector2I, CellData>();
 
 		for (int i = 0; i < BOARD_SIZE; i++)
 		{
@@ -29,9 +51,8 @@ public partial class TileMapController : TileMap
 			for (int j = 0; j < BOARD_SIZE; j++)
 			{
 				Vector2 localPos = MapToLocal(new Vector2I(i, j));
-				cellData[i][j] = new CellData(new Vector2I((int)localPos.X, (int)localPos.Y), true);
-				// GD.Print(cellData[i][j].position);
-				// GD.Print(cellData[i][j].isValid);
+				cellData[i][j] = new CellData((Vector2I)localPos, true);
+				cellDataDictionary.Add((Vector2I)localPos, cellData[i][j]);
 			}
 		}
 	}
@@ -46,7 +67,7 @@ public partial class TileMapController : TileMap
 				Vector2I tilePosition = new Vector2I(row, col);
 
 				// Set the tile at the calculated position
-				SetCell(0, tilePosition, 1, GetRandomFloor());
+				SetCell(floorLayer, tilePosition, 1, GetRandomFloor());
 			}
 		}
 	}
@@ -215,7 +236,7 @@ public partial class TileMapController : TileMap
 						{
 							// Add tile to tile map
 							SetCell(
-								1,
+								wallLayer,
 								new Vector2I(col - 1, row - 1),
 								0,
 								GetWallTile((i + 1) % 8, (i + 1) / 8)
@@ -227,7 +248,7 @@ public partial class TileMapController : TileMap
 				else
 				{
 					// place empty
-					SetCell(1, new Vector2I(col - 1, row - 1), 0);
+					SetCell(wallLayer, new Vector2I(col - 1, row - 1), 0);
 				}
 			}
 		}
@@ -240,8 +261,8 @@ public partial class TileMapController : TileMap
 		// Define dungeon parameters
 		int width = BOARD_SIZE;
 		int height = BOARD_SIZE;
-		int maxRooms = 6;
 		int minRooms = 3;
+		int maxRooms = 6;
 		int minRoomSize = 4;
 		int maxRoomSize = 6;
 		int borderSize = 2; // Size of the safe border
@@ -371,17 +392,19 @@ public partial class TileMapController : TileMap
 			for (int j = 0; j < BOARD_SIZE; j++)
 			{
 				Vector2I coord = new Vector2I(i, j);
-				TileData tileData = GetCellTileData(1, coord);
+				TileData tileData = GetCellTileData(3, coord);
 
 				if (tileData != null && !tileData.GetCustomData("walkable").AsBool())
 				{
 					astar.SetPointSolid(coord);
 					cellData[i][j].isValid = false;
+					cellDataDictionary[cellData[i][j].position].isValid = false;
 				}
 				else
 				{
 					astar.SetPointSolid(coord, false);
 					cellData[i][j].isValid = true;
+					cellDataDictionary[cellData[i][j].position].isValid = true;
 				}
 			}
 		}
